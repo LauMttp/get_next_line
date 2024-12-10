@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/get_next_line.h"
+#include "./get_next_line.h"
 
 void	set_it_free(char *it)
 {
@@ -27,8 +27,6 @@ char	*store_stash(char *line)
 	if (i == 0)
 		return (NULL);
 	dest = ft_strdup(&line[i]);
-	// if (!stash || (stash && *stash == '\0'))
-	// 	set_it_free(stash);
 	while (line[i])
 	{
 		line[i] = 0;
@@ -52,8 +50,6 @@ char	*create_line(int fd, char *stash, char *buf)
 	if (stash != NULL)
 	{
 		temp = ft_strdup(stash);
-		// if (!temp || (temp && *temp == '\0'))
-		// 	set_it_free(temp);
 		set_it_free(stash);
 	}
 	while (!temp || (ft_strchr(temp, '\n') == -1 && bytes_read > 0))
@@ -66,8 +62,6 @@ char	*create_line(int fd, char *stash, char *buf)
 		bytes_read = read(fd, buf, BUFFER_SIZE);
 		buf[bytes_read] = '\0';
 		temp = ft_strjoin(stash, buf);
-		// if (!temp || (temp && *temp == '\0'))
-		// 	set_it_free(temp);
 		set_it_free(stash);
 	}
 	return (temp);
@@ -82,10 +76,10 @@ char	*get_next_line(int fd)
 	buf = (char *)malloc(sizeof(char) * (BUFFER_SIZE + 1));
 	if (buf == NULL)
 		return (NULL);
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
 	{
 		set_it_free(buf);
-		set_it_free(stash);
+		// set_it_free(stash); --> double free detected in tcache 2
 		return (NULL);
 	}
 	line = create_line(fd, stash, buf);
@@ -99,28 +93,27 @@ char	*get_next_line(int fd)
 	stash = store_stash(line);
 	if (!stash || (stash && *stash == '\0'))
 		set_it_free(stash);
-	set_it_free(buf);
-	return (line);
+	return (set_it_free(buf), line);
 }
 
-int	main(void)
-{
-	char	*path;
-	int		fd;
-	char	*line;
-	int		i;
+// int	main(void)
+// {
+// 	char	*path;
+// 	int		fd;
+// 	char	*line;
+// 	int		i;
 
-	i = 0;
-	path = "../text.txt";
-	fd = open(path, O_RDONLY);
-	while (i < 11)
-	{
-		line = get_next_line(fd);
-		if (!line)
-			printf("\n");
-		printf("call_%d: %s", i, line);
-		i++;
-	}
-	set_it_free(line);
-	return (0);
-}
+// 	i = 0;
+// 	path = "../text.txt";
+// 	fd = open(path, O_RDONLY);
+// 	while (i < 11)
+// 	{
+// 		line = get_next_line(fd);
+// 		if (!line)
+// 			printf("\n");
+// 		printf("call_%d: %s", i, line);
+// 		set_it_free(line);
+// 		i++;
+// 	}
+// 	return (0);
+// }
