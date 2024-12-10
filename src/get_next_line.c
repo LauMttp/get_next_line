@@ -6,65 +6,70 @@
 /*   By: lmouttap <marvin@42.fr>                    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/30 16:24:14 by lmouttap          #+#    #+#             */
-/*   Updated: 2024/11/30 16:24:41 by lmouttap         ###   ########.fr       */
+/*   Updated: 2024/12/10 17:33:06 by lmouttap         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/get_next_line.h"
 
+void	set_it_free(char *it)
+{
+	free(it);
+	it = NULL;
+}
+
 char	*store_stash(char *line)
 {
-	char	*stash;
+	char	*dest;
 	int		i;
 
-	i = ft_strchr(line, '\n');
-	stash = ft_strdup(&line[i]);
+	i = ft_strchr(line, '\n') + 1;
+	if (i == 0)
+		return (NULL);
+	dest = ft_strdup(&line[i]);
+	// if (!stash || (stash && *stash == '\0'))
+	// 	set_it_free(stash);
 	while (line[i])
 	{
 		line[i] = 0;
 		i++;
 	}
-	if (*stash == '\0')
+	if (dest && *dest == '\0')
 	{
-		free(stash);
-		stash = NULL;
+		free(dest);
+		dest = NULL;
 	}
-	return (stash);
+	return (dest);
 }
 
 char	*create_line(int fd, char *stash, char *buf)
 {
 	char	*temp;
-	char	*loop_temp;
 	int		bytes_read;
 
 	temp = NULL;
-	loop_temp = NULL;
 	bytes_read = 1;
 	if (stash != NULL)
 	{
 		temp = ft_strdup(stash);
-		free(stash);
+		// if (!temp || (temp && *temp == '\0'))
+		// 	set_it_free(temp);
+		set_it_free(stash);
 	}
-	while (!temp || (ft_strchr(temp, '\n') == -1 && bytes_read))
+	while (!temp || (ft_strchr(temp, '\n') == -1 && bytes_read > 0))
 	{
 		if (temp)
 		{
-			loop_temp = ft_strdup(temp);
-			free(temp);
-			temp = NULL;
+			stash = ft_strdup(temp);
+			set_it_free(temp);
 		}
 		bytes_read = read(fd, buf, BUFFER_SIZE);
 		buf[bytes_read] = '\0';
-		temp = ft_strjoin(loop_temp, buf);
-		free(loop_temp);
-		loop_temp = NULL;
+		temp = ft_strjoin(stash, buf);
+		// if (!temp || (temp && *temp == '\0'))
+		// 	set_it_free(temp);
+		set_it_free(stash);
 	}
-	// printf("stash: %s",stash);
-	stash = store_stash(temp);
-	if (!bytes_read && ft_strchr(temp, '\n') == -1)
-		free(stash);
-	// printf("stash: %s",stash);
 	return (temp);
 }
 
@@ -79,42 +84,43 @@ char	*get_next_line(int fd)
 		return (NULL);
 	if (fd < 0 || BUFFER_SIZE <= 0)
 	{
-		free(buf);
-		free(stash);
+		set_it_free(buf);
+		set_it_free(stash);
 		return (NULL);
 	}
 	line = create_line(fd, stash, buf);
-
-	// printf("stash: %s",stash);
-	if (line == NULL)
+	if (!line || (line && *line == '\0'))
 	{
-		free(line);
+		set_it_free(buf);
+		set_it_free(line);
+		set_it_free(stash);
 		return (NULL);
 	}
-	free(buf);
+	stash = store_stash(line);
+	if (!stash || (stash && *stash == '\0'))
+		set_it_free(stash);
+	set_it_free(buf);
 	return (line);
 }
-
 
 int	main(void)
 {
 	char	*path;
 	int		fd;
 	char	*line;
+	int		i;
 
+	i = 0;
 	path = "../text.txt";
 	fd = open(path, O_RDONLY);
-	line = get_next_line(fd);
-	printf("call_1: %s\n", line);
-	free(line);
-	// printf("call_2: %s\n", get_next_line(fd));
-	// printf("call_3: %s\n", get_next_line(fd));
-	// printf("call_4: %s\n", get_next_line(fd));
-	// printf("call_5: %s\n", get_next_line(fd));
-	// printf("call_6: %s\n", get_next_line(fd));
-	// printf("call_7: %s\n", get_next_line(fd));
-	// printf("call_8: %s\n", get_next_line(fd));
-	// printf("call_9: %s\n", get_next_line(fd));
-	// printf("call_d: %s\n", get_next_line(fd));
+	while (i < 11)
+	{
+		line = get_next_line(fd);
+		if (!line)
+			printf("\n");
+		printf("call_%d: %s", i, line);
+		i++;
+	}
+	set_it_free(line);
 	return (0);
 }

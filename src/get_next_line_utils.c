@@ -82,27 +82,3 @@ char	*ft_strjoin(char *s1, char *s2)
 	dest [i + j] = '\0';
 	return (dest);
 }
-
-// char    *ft_substr(char *s, unsigned int start, unsigned int len)
-// {
-// 	unsigned int		i;
-// 	unsigned int		s_len;
-// 	char	*dest;
-
-// 	i = 0;
-// 	s_len = ft_strlen(s);
-// 	if (start > s_len)
-// 		return(NULL);
-// 	if (start + len > s_len)
-// 		len = s_len - start;
-// 	dest = malloc(sizeof(char) * (len + 1));
-// 	if (!dest)
-// 		return (NULL);
-// 	while (s[start + i] && i < len)
-// 	{
-// 		dest[i] = s[start + i];
-// 		i++;
-// 	}
-// 	dest[i] = '\0';
-// 	return (dest);
-// }
